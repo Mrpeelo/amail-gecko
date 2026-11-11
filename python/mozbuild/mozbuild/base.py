@@ -581,9 +581,8 @@ class MozbuildObject(ProcessExecutionMixin):
 
         leaf = None
 
-        leaf = (substs["MOZ_APP_NAME"] if what == "app" else what) + substs[
-            "BIN_SUFFIX"
-        ]
+        app_exe = substs.get("AMAIL_EXE_NAME") or substs["MOZ_APP_NAME"]
+        leaf = (app_exe if what == "app" else what) + substs["BIN_SUFFIX"]
         path = os.path.join(stem, leaf)
 
         if validate_exists and not os.path.exists(path):

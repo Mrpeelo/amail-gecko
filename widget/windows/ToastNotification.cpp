@@ -21,6 +21,7 @@
 #include "mozilla/mscom/Utils.h"
 #include "mozilla/widget/WinRegistry.h"
 #include "mozilla/Logging.h"
+#include "mozilla/Preferences.h"
 #include "mozilla/Services.h"
 #include "mozilla/WidgetUtils.h"
 #include "nsAppRunner.h"
@@ -65,6 +66,13 @@ ToastNotification::ToastNotification() = default;
 ToastNotification::~ToastNotification() = default;
 
 nsresult ToastNotification::Init() {
+#ifdef AMAIL_PORTABLE
+  // Registering the AUMID writes to the registry, so system notifications
+  // are opt-in for the portable build.
+  if (!Preferences::GetBool("alerts.useSystemBackend", false)) {
+    return NS_ERROR_NOT_AVAILABLE;
+  }
+#endif
   if (!PR_GetEnv("XPCSHELL_TEST_PROFILE_DIR")) {
     // Windows Toast Notification requires AppId.  But allow `xpcshell` to
     // create the service to test other functionality.

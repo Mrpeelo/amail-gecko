@@ -2330,6 +2330,7 @@ static void RegisterApplicationRestartChanged(const char* aPref, void* aData) {
   }
 }
 
+#  ifndef AMAIL_PORTABLE
 static void OnAlteredPrefetchPrefChanged(const char* aPref, void* aData) {
   int32_t prefVal = Preferences::GetInt(PREF_WIN_ALTERED_DLL_PREFETCH, 0);
 
@@ -2351,6 +2352,7 @@ static void SetupAlteredPrefetchPref() {
   Preferences::RegisterCallback(&OnAlteredPrefetchPrefChanged,
                                 PREF_WIN_ALTERED_DLL_PREFETCH);
 }
+#  endif
 
 static LazyLogModule gSkeletonLog("PreXULSkeletonUI");
 #  define SKELETON_LOG(str, ...) \
@@ -5869,9 +5871,15 @@ nsresult XREMain::XRE_mainRun() {
     }
 
 #ifdef XP_WIN
+#  ifdef AMAIL_PORTABLE
+    // Reading the experiment state creates its registry key.
+    mozilla::AlteredDllPrefetchMode dllPrefetchMode =
+        mozilla::AlteredDllPrefetchMode::CurrentPrefetch;
+#  else
     mozilla::DllPrefetchExperimentRegistryInfo prefetchRegInfo;
     mozilla::AlteredDllPrefetchMode dllPrefetchMode =
         prefetchRegInfo.GetAlteredDllPrefetchMode();
+#  endif
 
     if (!PR_GetEnv("XRE_NO_DLL_READAHEAD") &&
         dllPrefetchMode != mozilla::AlteredDllPrefetchMode::NoPrefetch) {
@@ -6135,7 +6143,9 @@ nsresult XREMain::XRE_mainRun() {
       Preferences::RegisterCallbackAndCall(
           RegisterApplicationRestartChanged,
           PREF_WIN_REGISTER_APPLICATION_RESTART);
+#  ifndef AMAIL_PORTABLE
       SetupAlteredPrefetchPref();
+#  endif
 #  if defined(MOZ_LAUNCHER_PROCESS)
       SetupLauncherProcessPref();
 #  endif  // defined(MOZ_LAUNCHER_PROCESS)
