@@ -119,6 +119,12 @@ export var Utils = {
     ) {
       return true;
     }
+    // aMail: no contact with the settings server, only the shipped data.
+    if (
+      Services.prefs.getBoolPref("services.settings.amail_skip_remote", false)
+    ) {
+      return true;
+    }
     return Services.policies?.isAllowed("remoteSettings") === false;
   },
 
